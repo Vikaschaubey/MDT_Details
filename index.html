@@ -1,0 +1,217 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Search System</title>
+
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    .container {
+        width: 95%;
+        max-width: 1200px;
+        margin-top: 40px;
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 25px;
+    }
+
+    .search-section {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+    }
+
+    select, input {
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+        flex: 1;
+    }
+
+    button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        background: #2a5298;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #1e3c72;
+    }
+
+    .result-card {
+        background: #f4f7ff;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .result-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+
+    .result-item {
+        background: white;
+        padding: 12px;
+        border-radius: 6px;
+        border-left: 4px solid #2a5298;
+    }
+
+    .label {
+        font-weight: bold;
+        font-size: 13px;
+        color: #555;
+    }
+
+    .value {
+        font-size: 15px;
+        margin-top: 4px;
+    }
+
+    .no-result {
+        color: red;
+        font-weight: bold;
+        margin-top: 15px;
+    }
+    </style>
+    </head>
+    <body>
+
+    <div class="container">
+        <h1>Vehicle Advanced Search</h1>
+
+        <div class="search-section">
+            <select id="columnSelect">
+                <option value="VEHICLE_NO">VEHICLE_NO</option>
+                <option value="IMEI1">IMEI1</option>
+                <option value="IMEI2">IMEI2</option>
+                <option value="ICCID">ICCID</option>
+                <option value="MDT_NUMBER">MDT_NUMBER</option>
+            </select>
+
+            <input type="text" id="searchInput" placeholder="Enter search value">
+            <button onclick="searchData()">Search</button>
+        </div>
+
+        <div id="result"></div>
+    </div>
+
+    <script>
+
+    let tableData = [];   // 🔹 Local JS variable storing full file data
+
+    // 🔹 Auto load CSV file into JS variable
+   window.onload = function() {
+
+    fetch("data.csv")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("File not found!");
+            }
+            return response.text();
+        })
+        .then(csvText => {
+
+            console.log("CSV Loaded Successfully");
+
+            const rows = csvText.trim().split("\n").map(row => row.split(","));
+            const headers = rows[0].map(h => h.trim());
+
+            tableData = rows.slice(1).map(row => {
+                let obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = row[index] ? row[index].trim() : "";
+                });
+                return obj;
+            });
+
+            console.log("Stored in JS Variable:", tableData);
+            
+
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("CSV file not loading. Run using Live Server.");
+        });
+
+};
+
+    // 🔹 Search Function
+    function searchData() {
+
+        const column = document.getElementById("columnSelect").value;
+        const value = document.getElementById("searchInput").value.trim();
+        const resultDiv = document.getElementById("result");
+
+        resultDiv.innerHTML = "";
+
+        if (!value) {
+            alert("Please enter search value");
+            return;
+        }
+
+        const found = tableData.find(row =>
+            row[column] && row[column].toLowerCase() === value.toLowerCase()
+        );
+
+        if (found) {
+
+            const displayKeys = [
+                "VEHICLE_NO",
+                "IMEI1",
+                "IMEI2",
+                "ICCID",
+                "MDT_NUMBER",
+                "VEHICLE_TYPE",
+                "RO",
+                "PIU",
+                "TOLL_NAME"
+            ];
+
+            let card = `<div class="result-card">
+                            <h2>Search Result</h2>
+                            <div class="result-grid">`;
+
+            displayKeys.forEach(key => {
+                card += `
+                    <div class="result-item">
+                        <div class="label">${key}</div>
+                        <div class="value">${found[key] || ""}</div>
+                    </div>`;
+            });
+
+            card += `</div></div>`;
+            resultDiv.innerHTML = card;
+
+        } else {
+            resultDiv.innerHTML = `<div class="no-result">No matching record found.</div>`;
+        }
+    }
+
+    </script>
+
+    </body>
+    </html>
