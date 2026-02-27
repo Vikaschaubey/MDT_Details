@@ -106,6 +106,8 @@
     <div class="container">
         <h1>Vehicle Advanced Search</h1>
 
+        <input type="file" id="fileInput" accept=".csv">
+
         <div class="search-section">
             <select id="columnSelect">
                 <option value="Vehicle_no">Vehicle_no</option>
@@ -122,108 +124,110 @@
 
     <script>
 
-        let tableData = [];   // 🔹 Local JS variable storing full file data
+    let tableData = [];   // Store uploaded CSV data
 
-        // 🔹 Auto load CSV file into JS variable
-        window.onload = function () {
+    // 🔹 File Upload Function
+    document.getElementById("fileInput").addEventListener("change", function (event) {
 
-            fetch("data1.csv")
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("File not found!");
-                    }
-                    return response.text();
-                })
-                .then(csvText => {
+        const file = event.target.files[0];
 
-                    console.log("CSV Loaded Successfully");
-
-                    const rows = csvText.trim().split("\n").map(row => row.split(","));
-                    const headers = rows[0].map(h => h.trim());
-
-                    tableData = rows.slice(1).map(row => {
-                        let obj = {};
-                        headers.forEach((header, index) => {
-                            obj[header] = row[index] ? row[index].trim() : "";
-                        });
-                        return obj;
-                    });
-
-                    console.log("Stored in JS Variable:", tableData);
-
-
-                })
-                .catch(error => {
-                    console.error("Error:", error);
-                    alert("CSV file not loading. Run using Live Server.");
-                });
-
-        };
-
-        // 🔹 Search Function
-        function searchData() {
-
-            const column = document.getElementById("columnSelect").value;
-            const value = document.getElementById("searchInput").value.trim();
-            const resultDiv = document.getElementById("result");
-
-            resultDiv.innerHTML = "";
-
-            if (!value) {
-                alert("Please enter search value");
-                return;
-            }
-
-            const found = tableData.find(row =>
-                row[column] && row[column].toLowerCase() === value.toLowerCase()
-            );
-
-            if (found) {
-
-                const displayKeys = [
-                    "Driver_name",
-                    "Driver_contact",
-                    "Vehicle_no",
-                    "IMEI_1",
-                    "IMEI_2",
-                    "MDT_Number",
-                    "Vehicale_type",
-                    "Toll_name",
-                    "Ro_name",
-                    "Piu_name",
-                    "Device_imei",
-                    "Created_on",
-                    "Contractor_name",
-                    "Handset_calling_no",
-                    "Contractor_email",
-                    "Contractor_mobile",
-                    "Ambulance_type",
-                    "Current_version",
-                    "Mandatory_version"
-                ];
-
-
-                let card = `<div class="result-card">
-                            <h2>Search Result</h2>
-                            <div class="result-grid">`;
-
-                displayKeys.forEach(key => {
-                    card += `
-                    <div class="result-item">
-                        <div class="label">${key}</div>
-                        <div class="value">${found[key] || ""}</div>
-                    </div>`;
-                });
-
-                card += `</div></div>`;
-                resultDiv.innerHTML = card;
-
-            } else {
-                resultDiv.innerHTML = `<div class="no-result">No matching record found.</div>`;
-            }
+        if (!file) {
+            alert("Please select a CSV file.");
+            return;
         }
 
-    </script>
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+
+            const csvText = e.target.result;
+            const rows = csvText.trim().split("\n").map(row => row.split(","));
+            const headers = rows[0].map(h => h.trim());
+
+            tableData = rows.slice(1).map(row => {
+                let obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = row[index] ? row[index].trim() : "";
+                });
+                return obj;
+            });
+
+            console.log("File Loaded Successfully:", tableData);
+            alert("File uploaded successfully!");
+        };
+
+        reader.readAsText(file);
+    });
+
+
+    // 🔹 Search Function
+    function searchData() {
+
+        if (tableData.length === 0) {
+            alert("Please upload CSV file first.");
+            return;
+        }
+
+        const column = document.getElementById("columnSelect").value;
+        const value = document.getElementById("searchInput").value.trim();
+        const resultDiv = document.getElementById("result");
+
+        resultDiv.innerHTML = "";
+
+        if (!value) {
+            alert("Please enter search value");
+            return;
+        }
+
+        const found = tableData.find(row =>
+            row[column] && row[column].toLowerCase() === value.toLowerCase()
+        );
+
+        if (found) {
+
+            const displayKeys = [
+                "Driver_name",
+                "Driver_contact",
+                "Vehicle_no",
+                "IMEI_1",
+                "IMEI_2",
+                "MDT_Number",
+                "Vehicale_type",
+                "Toll_name",
+                "Ro_name",
+                "Piu_name",
+                "Device_imei",
+                "Created_on",
+                "Contractor_name",
+                "Handset_calling_no",
+                "Contractor_email",
+                "Contractor_mobile",
+                "Ambulance_type",
+                "Current_version",
+                "Mandatory_version"
+            ];
+
+            let card = `<div class="result-card">
+                        <h2>Search Result</h2>
+                        <div class="result-grid">`;
+
+            displayKeys.forEach(key => {
+                card += `
+                <div class="result-item">
+                    <div class="label">${key}</div>
+                    <div class="value">${found[key] || ""}</div>
+                </div>`;
+            });
+
+            card += `</div></div>`;
+            resultDiv.innerHTML = card;
+
+        } else {
+            resultDiv.innerHTML = `<div class="no-result">No matching record found.</div>`;
+        }
+    }
+
+</script>
 
 </body>
 
